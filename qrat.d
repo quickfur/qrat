@@ -27,6 +27,7 @@ private template from(string mod)
 // once we import it, we cannot even declare our own BigInt version of gcd
 // without causing an overload conflict.
 T gcd(T)(T a, T b)
+    if (isArithmeticType!T)
 in { assert(a >= 0 && b >= 0); }
 body
 {
@@ -35,7 +36,7 @@ body
     {
         return std.numeric.gcd(a, b);
     }
-    else static if (is(T == from!"std.bigint".BigInt))
+    else
     {
         // This is a hack to implement gcd for BigInt. Note that this is VERY
         // INEFFICIENT for BigInt; it's only a stop-gap measure until we get a
@@ -48,8 +49,6 @@ body
         }
         return a;
     }
-    else
-        static assert(0, T.stringof ~ " does not support gcd().");
 }
 
 unittest
