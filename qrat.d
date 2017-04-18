@@ -56,6 +56,12 @@ unittest
     assert(gcd(20, 15) == 5);
 }
 
+unittest
+{
+    import std.bigint : BigInt;
+    assert(gcd(BigInt(20), BigInt(16)) == BigInt(4));
+}
+
 /**
  * Variadic gcd.
  */
