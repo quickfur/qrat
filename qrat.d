@@ -137,7 +137,7 @@ struct QRat(int r, Num = long)
     static if (r==5 && is(Num == long))
     unittest
     {
-    	auto phi = (1 + surd!5)/2;
+        auto phi = (1 + surd!5)/2;
         assert(phi.conj == (1 - surd!5)/2);
     }
 
@@ -409,25 +409,25 @@ struct QRat(int r, Num = long)
      */
     int sgn()()
     {
-    	static assert(r >= 0, "Cannot compute sign for square root of "~
+        static assert(r >= 0, "Cannot compute sign for square root of "~
                               "negative number");
 
         // Simple cases.
         import std.math : abs, sgn;
         assert(c > 0);
-    	if (a==0)
-        	return cast(int) sgn(b);
-		if (b==0)
-        	return cast(int) sgn(a);
+        if (a==0)
+            return cast(int) sgn(b);
+        if (b==0)
+            return cast(int) sgn(a);
 
-    	// Cases of obvious sign
+        // Cases of obvious sign
         assert(a != 0 && b != 0);
         if (a < 0 && b < 0) return -1;
         if (a > 0 && b > 0) return 1;
 
         // Complicated cases: when the rational and irrational components are
         // of opposite signs.
-        auto g = gcd(abs(a), abs(b));	// minimize chances of overflow
+        auto g = gcd(abs(a), abs(b));   // minimize chances of overflow
         auto aTmp = a/g;
         auto bTmp = b/g;
 
@@ -447,7 +447,7 @@ struct QRat(int r, Num = long)
     static if (r==5 && is(Num == long))
     unittest
     {
-    	auto q1 = 0*surd!5;
+        auto q1 = 0*surd!5;
         assert(q1.sgn() == 0);
 
         auto q2 = 5*surd!5;
@@ -471,6 +471,25 @@ struct QRat(int r, Num = long)
 
         assert((3 - surd!5).sgn() == 1);
         assert((2 - surd!5).sgn() == -1);
+    }
+
+    /**
+     * Compare two quadratic rationals according to numerical order.
+     *
+     * Obviously, this only works if r is non-negative.
+     */
+    int opCmp()(QRat q)
+    {
+        return (this - q).sgn();
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        assert(6 + surd!5 < 4 + 2*surd!5);
+        assert(1 + surd!5 < 2 + 2*(surd!5)/3);
+        assert((10 + surd!5)/20 < (surd!5 - 1)/2);
+        assert((surd!5 - 1)/2 < (10 + surd!5)/19);
     }
 }
 
