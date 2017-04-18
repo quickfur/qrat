@@ -284,7 +284,7 @@ struct QRat(int r, Num = long)
     }
 
     // QRat division
-    ///
+    /// ditto
     QRat opBinary(string op)(QRat q)
         if (op == "/")
     {
@@ -338,6 +338,21 @@ struct QRat(int r, Num = long)
         auto q1 = (2 + 2*surd!3) / 3;
         auto q2 = (3 - 3*surd!3) / 2;
         assert(q1 / q2 == (-8 - 4*surd!3)/9);
+    }
+
+    /// ditto
+    QRat opBinaryRight(string op, N)(N n)
+    	if (op == "/" &&
+            is(typeof(N.init / Num.init) : Num))
+    {
+        // FIXME: optimize this.
+    	return QRat(n, 0, 1) / this;
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        assert(1 / ((1 + surd!5)/2) == (surd!5 - 1)/2);
     }
 
     /**
