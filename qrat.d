@@ -132,7 +132,14 @@ struct QRat(int r, Num = long)
     /**
      * Returns: The conjugate (a - b*√r)/c of this quadratic rational.
      */
-    QRat conj() { return QRat(a, -b, c); }
+    QRat conj()() { return QRat(a, -b, c); }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+    	auto phi = (1 + surd!5)/2;
+        assert(phi.conj == (1 - surd!5)/2);
+    }
 
     /**
      * Binary operators.
@@ -335,14 +342,14 @@ struct QRat(int r, Num = long)
     /**
      * Equality comparisons.
      */
-    bool opEquals(QRat q)
+    bool opEquals()(QRat q)
     {
         assert(c > 0 && q.c > 0);
         return a == q.a && b == q.b && c == q.c;
     }
 
     /// ditto
-    bool opEquals(Num n)
+    bool opEquals()(Num n)
     {
         if (b != 0 || c != 1) return false;
         assert(b == 0 && c == 1);
@@ -367,6 +374,8 @@ struct QRat(int r, Num = long)
      * Convert this quadratic rational to (imprecise) floating-point
      * representation.
      *
+     * This is only possible if r is non-negative.
+     *
      * Note that for custom base number types that may overflow upon
      * conversion to double, this operation may not return the correct
      * result.
@@ -374,8 +383,8 @@ struct QRat(int r, Num = long)
     auto opCast(T : double)()
         if (is(typeof(cast(double) Num.init)))
     {
-        static assert(r > 0, "Cannot convert square root of negative number "~
-                             "to double");
+        static assert(r >= 0, "Cannot convert square root of negative number "~
+                              "to double");
 
         import std.math : sqrt;
         return (cast(double) a + b*sqrt(cast(double)r)) / c;
