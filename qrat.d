@@ -226,6 +226,19 @@ struct QRat(int r, Num = long)
 
     // QRat multiplication
     /// ditto
+    QRat opBinary(string op)(QRat q)
+        if (op == "*")
+    {
+        return QRat(a*q.a + b*q.b*r, a*q.b + b*q.a, c * q.c);
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        auto phi = (1 + surd!5)/2;
+        auto inv = (surd!5 - 1)/2;
+        assert(phi * inv == QRat!5(1, 0, 1));
+    }
 }
 
 unittest
