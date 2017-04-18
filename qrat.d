@@ -11,10 +11,18 @@
 
 module qrat;
 
+/**
+ * true if T is an arithmetical type, false otherwise.
+ *
+ * T is considered arithmetical if it is closed under the standard field
+ * operations +, -, *, and /, and furthermore supports scalar multiplication
+ * and comparison with the built-in int type.
+ */
 enum isArithmeticType(T) = is(typeof(T.init + T.init) : T) &&
                            is(typeof(T.init - T.init) : T) &&
                            is(typeof(T.init * T.init) : T) &&
                            is(typeof(T.init / T.init) : T) &&
+                           is(typeof(T.init * int.init) : T) &&
                            is(typeof(T.init == 0) : bool);
 
 private template from(string mod)
@@ -88,7 +96,7 @@ unittest
  *      However, you may get strange or wrong results if r is not square-free.
  */
 struct QRat(int r, Num = long)
-    if (isArithmeticType!Num)
+    if (r != 0 && r != 1 && isArithmeticType!Num)
 {
     Num a, b, c=1;
 
@@ -258,12 +266,65 @@ struct QRat(int r, Num = long)
         auto phi = (1 + surd!5)/2;
         auto inv = (surd!5 - 1)/2;
         assert(phi * inv == QRat!5(1, 0, 1));
+        assert(phi * phi == phi + 1);
 
         // We actually don't need to worry if r<0, since the multiplication
         // actually works in that case too! So here's a Gaussian integer
         // example.
         assert(surd!(-1) * surd!(-1) == QRat!(-1)(-1, 0, 1));
         assert((1 + surd!(-1)) * (1 - surd!(-1)) == QRat!(-1)(2, 0, 1));
+    }
+
+    // QRat division
+    ///
+    QRat opBinary(string op)(QRat q)
+        if (op == "/")
+    {
+        // Derivation:
+        // ((a + b√r)/c) / ((a' + b'√r)/c')
+        // = (c'/c) * ((a + b√r) * (a' - b'√r)) / (a'^2 - b'^2*r)
+        // = (c'/c) * ((a*a' - b*b'*r) + (a'*b - a*b')√r) / (a'^2 - b'^2*r)
+        import std.math : abs;
+
+        auto aTmp = a*q.a - b*q.b*r;
+        auto bTmp = q.a*b - a*q.b;
+        auto cTmp = q.a*q.a - q.b*q.b*r;
+
+        // k1/k2 = ratio of denominators
+        auto g0 = gcd(abs(c), abs(q.c));
+        auto k1 = q.c / g0;
+        auto k2 = c / g0;
+
+        // Cancel out common factors to reduce chances of overflow.
+        auto g1 = gcd(abs(k1), abs(cTmp));
+        auto g2 = gcd(abs(k2), abs(aTmp), abs(bTmp));
+
+        if (g1 != 1)
+        {
+            k1 /= g1;
+            cTmp /= g1;
+        }
+
+        if (g2 != 1)
+        {
+            k2 /= g2;
+            aTmp /= g2;
+            bTmp /= g2;
+        }
+
+        return QRat(k1*aTmp, k1*bTmp, k2*cTmp);
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        // Golden ratio identity
+        auto phi = (1 + surd!5)/2;
+        auto inv = (surd!5 - 1)/2;
+        assert(phi / inv == phi + 1);
+
+        // Gaussian integer identity
+        assert((1 + surd!(-1)) / (1 - surd!(-1)) == surd!(-1));
     }
 
     /**
