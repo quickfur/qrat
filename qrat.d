@@ -259,6 +259,33 @@ struct QRat(int r, Num = long)
         assert(surd!(-1) * surd!(-1) == QRat!(-1)(-1, 0, 1));
         assert((1 + surd!(-1)) * (1 - surd!(-1)) == QRat!(-1)(2, 0, 1));
     }
+
+    /**
+     * Equality comparisons.
+     */
+    bool opEquals(QRat q)
+    {
+        assert(c > 0 && q.c > 0);
+        return a == q.a && b == q.b && c == q.c;
+    }
+
+    /// ditto
+    bool opEquals(Num n)
+    {
+        if (b != 0 || c != 1) return false;
+        assert(b == 0 && c == 1);
+        return a == n;
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        auto q1 = 1 + surd!(-1);
+        auto q2 = 1 - surd!(-1);
+
+        assert(q1 * q2 == 2);
+        assert(q1 - 2*surd!(-1) == q2);
+    }
 }
 
 unittest
