@@ -8,8 +8,50 @@
  * Copyright: H. S. Teoh, 2017-.
  * License: Boost License 1.0.
  */
-
 module qrat;
+
+///
+unittest
+{
+    // The basic type for storing quadratic rationals is QRat.
+    auto phi = QRat!5(1, 1, 2); // The golden ratio, (1 + √5)/2 = 1.61803...
+    auto phiInverse = QRat!5(-1, 1, 2); // The reciprocal of the golden ratio
+
+    // Basic arithmetic is supported, and is exact.
+    assert(phi*phi == phi+1);	// Golden ratio identity
+    assert(phi*phi - phi - 1 == 0);
+    assert(phi * phiInverse == 1);
+    assert(1/phi == phiInverse);
+
+    // The surd() template function makes it convenient to create instances of
+    // QRat in a more readable fashion.
+    auto q = (1 + surd!5) / 2;
+    assert(phi == q);
+
+    // You can mix and match QRat expressions with integral expressions.
+	assert(phi*10000 > 16180);
+	assert(phi*10000 < 16181);
+
+    // You can even create Gaussian integers.
+    auto g1 = 1 + surd!(-1);
+    auto g2 = 1 - surd!(-1);
+    assert(g1 * g2 == 2);
+
+    // Of course, QRat goes further and allows you to manipulate "rational"
+    // complex numbers (i.e., complex numbers with rational coefficients).
+    auto g3 = g1 / (2 - surd!(-1));
+    assert(g3 == (1 + 3*surd!(-1)) / 5);
+
+    // Obviously, complex numbers cannot be linearly ordered, so trying to
+    // compare them with < will fail.
+    assert(!__traits(compiles, g1 < g2));
+
+    // We're not limited, of course, to standard complex numbers. We can
+    // put other negative numbers under the surd:
+    auto h1 = 1 + surd!(-2);
+    auto h2 = 1 - surd!(-2);
+    assert(h1*h2 == 3);
+}
 
 /**
  * true if T is an arithmetical type, false otherwise.
