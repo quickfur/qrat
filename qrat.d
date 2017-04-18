@@ -342,11 +342,11 @@ struct QRat(int r, Num = long)
 
     /// ditto
     QRat opBinaryRight(string op, N)(N n)
-    	if (op == "/" &&
+        if (op == "/" &&
             is(typeof(N.init / Num.init) : Num))
     {
         // FIXME: optimize this.
-    	return QRat(n, 0, 1) / this;
+        return QRat(n, 0, 1) / this;
     }
 
     static if (r==5 && is(Num == long))
@@ -493,7 +493,8 @@ struct QRat(int r, Num = long)
      *
      * Obviously, this only works if r is non-negative.
      */
-    int opCmp()(QRat q)
+    int opCmp(T)(T q)
+        if (is(T == QRat) || is(T : Num))
     {
         return (this - q).sgn();
     }
@@ -505,6 +506,10 @@ struct QRat(int r, Num = long)
         assert(1 + surd!5 < 2 + 2*(surd!5)/3);
         assert((10 + surd!5)/20 < (surd!5 - 1)/2);
         assert((surd!5 - 1)/2 < (10 + surd!5)/19);
+
+        auto phi = (1 + surd!5)/2;
+        assert(100*phi / 162 < 1);
+        assert(100*phi / 161 > 1);
     }
 }
 
