@@ -208,7 +208,8 @@ struct QRat(int r, Num = long)
         if (op == "*" &&
             is(typeof(Num.init * N.init) : Num))
     {
-        auto g = gcd(n, c);
+        import std.math : abs;
+        auto g = gcd(abs(n), abs(c));
         if (g == 1)
             return QRat(a*n, b*n, c);
         else
@@ -396,6 +397,80 @@ struct QRat(int r, Num = long)
         import std.math : abs;
         auto q = cast(double) (1 + surd!5)/2;
         assert(abs(q - 1.61803398874989) < 1e-13);
+    }
+
+    /**
+     * Compute the sign of this quadratic rational.
+     *
+     * Obviously, this only works if r is non-negative.
+     *
+     * Returns: -1 if this quadratic rational is negative; 0 if it is zero, or
+     * 1 if it is positive.
+     */
+    int sgn()()
+    {
+    	static assert(r >= 0, "Cannot compute sign for square root of "~
+                              "negative number");
+
+        // Simple cases.
+        import std.math : abs, sgn;
+        assert(c > 0);
+    	if (a==0)
+        	return cast(int) sgn(b);
+		if (b==0)
+        	return cast(int) sgn(a);
+
+    	// Cases of obvious sign
+        assert(a != 0 && b != 0);
+        if (a < 0 && b < 0) return -1;
+        if (a > 0 && b > 0) return 1;
+
+        // Complicated cases: when the rational and irrational components are
+        // of opposite signs.
+        auto g = gcd(abs(a), abs(b));	// minimize chances of overflow
+        auto aTmp = a/g;
+        auto bTmp = b/g;
+
+        if (a < 0 && b > 0)
+        {
+            // In this case, (b*√r - a) is positive, so sgn(this) ==
+            // sgn(this*(b*√r - a)) == sgn(b^2*r - a^2).
+            return cast(int) sgn(bTmp*bTmp*r - aTmp*aTmp);
+        }
+
+        assert(a > 0 && b < 0);
+        // In this case, (a - b*√r) is positive, so sgn(this) ==
+        // sgn(this*(a - b*√r)) == sgn(a^2 - b^2*r).
+        return cast(int) sgn(aTmp*aTmp - bTmp*bTmp*r);
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+    	auto q1 = 0*surd!5;
+        assert(q1.sgn() == 0);
+
+        auto q2 = 5*surd!5;
+        assert(q2.sgn() == 1);
+
+        auto q3 = -5*surd!5;
+        assert(q3.sgn() == -1);
+
+        auto q4 = 1 + 0*surd!5;
+        assert(q4.sgn() == 1);
+
+        auto q5 = -2 + 0*surd!5;
+        assert(q5.sgn() == -1);
+
+        assert(((1 + surd!5)/2).sgn() == 1);
+        assert(((-1 - surd!5)/2).sgn() == -1);
+
+        auto q6 = (1 - surd!5)/2;
+        assert(q6.sgn() == -1);
+        assert((q6 * -1).sgn() == 1);
+
+        assert((3 - surd!5).sgn() == 1);
+        assert((2 - surd!5).sgn() == -1);
     }
 }
 
