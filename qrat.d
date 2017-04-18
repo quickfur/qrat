@@ -57,6 +57,23 @@ unittest
 }
 
 /**
+ * Variadic gcd.
+ */
+auto gcd(T...)(T args)
+    if (args.length > 2)
+{
+    auto g = gcd(args[0], args[1]);
+    if (g == 1) return g;   // short-circuit for efficiency
+    return gcd(g, args[2 .. $]);
+}
+
+unittest
+{
+    assert(gcd(100, 75, 25) == 25);
+    assert(gcd(5, 7, 14) == 1);
+}
+
+/**
  * A quadratic rational of the form (a + b*√r)/c.
  *
  * Params:
@@ -82,10 +99,15 @@ struct QRat(int r, Num = long)
     // Reduce fraction to lowest terms.
     private void normalize()
     {
-        auto g = gcd(a, c);
-        if (g == 1) return;
+        if (c < 0)
+        {
+            a = -a;
+            b = -b;
+            c = -c;
+        }
 
-        g = gcd(g, b);
+        import std.math : abs;
+        auto g = gcd(abs(a), abs(b), c);
         if (g == 1) return;
 
         a /= g;
