@@ -358,6 +358,36 @@ struct QRat(int r, Num = long)
         assert(q1 * q2 == 2);
         assert(q1 - 2*surd!(-1) == q2);
     }
+
+    /* The following operations only make sense for non-imaginary quadratic
+     * rationals.
+     */
+
+    /**
+     * Convert this quadratic rational to (imprecise) floating-point
+     * representation.
+     *
+     * Note that for custom base number types that may overflow upon
+     * conversion to double, this operation may not return the correct
+     * result.
+     */
+    auto opCast(T : double)()
+        if (is(typeof(cast(double) Num.init)))
+    {
+        static assert(r > 0, "Cannot convert square root of negative number "~
+                             "to double");
+
+        import std.math : sqrt;
+        return (cast(double) a + b*sqrt(cast(double)r)) / c;
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        import std.math : abs;
+        auto q = cast(double) (1 + surd!5)/2;
+        assert(abs(q - 1.61803398874989) < 1e-13);
+    }
 }
 
 unittest
