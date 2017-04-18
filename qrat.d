@@ -187,7 +187,15 @@ struct QRat(int r, Num = long)
         if (op == "*" &&
             is(typeof(Num.init * N.init) : Num))
     {
-        return QRat(a*n, b*n, c);
+        auto g = gcd(n, c);
+        if (g == 1)
+            return QRat(a*n, b*n, c);
+        else
+        {
+            // Reduce likelihood of overflow
+            auto reducedN = n / g;
+            return QRat(a*reducedN, b*reducedN, c/g);
+        }
     }
 
     static if (r==5 && is(Num == long))
@@ -195,6 +203,9 @@ struct QRat(int r, Num = long)
     {
         auto q = 1 + surd!5;
         assert(q*2 == QRat!5(2, 2, 1));
+
+        auto q1 = (1 + surd!5) / 6;
+        assert(q1*3 == (1 + surd!5) / 2);
     }
 
     /// ditto
@@ -202,7 +213,7 @@ struct QRat(int r, Num = long)
         if (op == "*" &&
             is(typeof(Num.init * N.init) : Num))
     {
-        return QRat(n*a, n*b, c);
+        return this*n;
     }
 
     static if (r==5 && is(Num == long))
