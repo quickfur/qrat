@@ -168,7 +168,7 @@ struct QRat(int r, Num = long)
         if ((op == "+" || op == "-") &&
             is(typeof(Num.init * N.init) : Num))
     {
-        return QRat(mixin("n*c "~op~" a"), b, c);
+        return QRat(mixin("n*c "~op~" a"), mixin(op~" b"), c);
     }
 
     static if (r==5 && is(Num == long))
@@ -176,6 +176,9 @@ struct QRat(int r, Num = long)
     {
         auto q = 1 + surd!5;
         assert(q == QRat!5(1, 1, 1));
+
+        auto q2 = 1 - surd!5;
+        assert(q2 == QRat!5(1, -1, 1));
     }
 
     // Scalar multiplication
@@ -238,6 +241,12 @@ struct QRat(int r, Num = long)
         auto phi = (1 + surd!5)/2;
         auto inv = (surd!5 - 1)/2;
         assert(phi * inv == QRat!5(1, 0, 1));
+
+        // We actually don't need to worry if r<0, since the multiplication
+        // actually works in that case too! So here's a Gaussian integer
+        // example.
+        assert(surd!(-1) * surd!(-1) == QRat!(-1)(-1, 0, 1));
+        assert((1 + surd!(-1)) * (1 - surd!(-1)) == QRat!(-1)(2, 0, 1));
     }
 }
 
