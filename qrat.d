@@ -325,6 +325,11 @@ struct QRat(int r, Num = long)
 
         // Gaussian integer identity
         assert((1 + surd!(-1)) / (1 - surd!(-1)) == surd!(-1));
+
+        // Use case with lots of common factors
+        auto q1 = (2 + 2*surd!3) / 3;
+        auto q2 = (3 - 3*surd!3) / 2;
+        assert(q1 / q2 == (-8 - 4*surd!3)/9);
     }
 
     /**
