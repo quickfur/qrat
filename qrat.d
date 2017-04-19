@@ -18,7 +18,7 @@ unittest
     auto phiInverse = QRat!5(-1, 1, 2); // The reciprocal of the golden ratio
 
     // Basic arithmetic is supported, and is exact.
-    assert(phi*phi == phi+1);	// Golden ratio identity
+    assert(phi*phi == phi+1);   // Golden ratio identity
     assert(phi*phi - phi - 1 == 0);
     assert(phi * phiInverse == 1);
     assert(1/phi == phiInverse);
@@ -29,8 +29,8 @@ unittest
     assert(phi == q);
 
     // You can mix and match QRat expressions with integral expressions.
-	assert(phi*10000 > 16180);
-	assert(phi*10000 < 16181);
+    assert(phi*10000 > 16180);
+    assert(phi*10000 < 16181);
 
     // You can even create Gaussian integers.
     auto g1 = 1 + surd!(-1);
@@ -51,6 +51,11 @@ unittest
     auto h1 = 1 + surd!(-2);
     auto h2 = 1 - surd!(-2);
     assert(h1*h2 == 3);
+
+    // You can print out QRat quantities in a nice formatting
+    import std.format : format;
+    auto s = format("%s", (7 - 2*surd!11)/3);
+    assert(s == "(7-2*√11)/3");
 }
 
 /**
@@ -552,6 +557,67 @@ struct QRat(int r, Num = long)
         auto phi = (1 + surd!5)/2;
         assert(100*phi / 162 < 1);
         assert(100*phi / 161 > 1);
+    }
+
+    /**
+     * Converts this quadratic rational to a string representation.
+     */
+    void toString(scope void delegate(const(char)[]) sink)
+    {
+        import std.format : formattedWrite;
+
+        if (a == 0 && b == 0)
+        {
+            sink("0");
+            return;
+        }
+
+        bool needParens = (a != 0 && b != 0 && c != 1);
+        if (needParens) sink("(");
+        if (a != 0)
+        {
+            sink.formattedWrite("%d", a);
+            if (b > 0) sink("+");
+        }
+        if (b != 0)
+        {
+            if (b != 1)
+                sink.formattedWrite("%d*", b);
+
+            if (r < 0)
+                sink.formattedWrite("√(%d)", r);
+            else
+                sink.formattedWrite("√%d", r);
+        }
+        if (needParens) sink(")");
+        if (c != 1)
+            sink.formattedWrite("/%d", c);
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        import std.format : format;
+        assert(format("%s", 0*surd!5) == "0");
+        assert(format("%s", 1 + 0*surd!5) == "1");
+        assert(format("%s", surd!5) == "√5");
+        assert(format("%s", 2*surd!5) == "2*√5");
+        assert(format("%s", -2*surd!5) == "-2*√5");
+        assert(format("%s", 1 + surd!5) == "1+√5");
+        assert(format("%s", 1 + 2*surd!5) == "1+2*√5");
+        assert(format("%s", (1 + 2*surd!5)/2) == "(1+2*√5)/2");
+
+        assert(format("%s", (surd!5)/2) == "√5/2");
+        assert(format("%s", 3*(surd!5)/2) == "3*√5/2");
+        assert(format("%s", (1 + 0*surd!5)/2) == "1/2");
+
+        assert(format("%s", 0*surd!(-1)) == "0");
+        assert(format("%s", 1 + 0*surd!(-1)) == "1");
+        assert(format("%s", 1*surd!(-1)) == "√(-1)");
+        assert(format("%s", 2*surd!(-1)) == "2*√(-1)");
+        assert(format("%s", (1 + 2*surd!(-1))/2) == "(1+2*√(-1))/2");
+        assert(format("%s", (1 + 2*surd!(11))/2) == "(1+2*√11)/2");
+        assert(format("%s", (1 - 2*surd!(11))/2) == "(1-2*√11)/2");
     }
 }
 
