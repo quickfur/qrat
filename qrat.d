@@ -727,7 +727,9 @@ struct QRat(int r, Num = long)
         }
         if (b != 0)
         {
-            if (b != 1)
+            if (b == -1)
+                sink("-");
+            else if (b != 1)
                 sink.formattedWrite("%d*", b);
 
             if (r < 0)
@@ -765,6 +767,7 @@ struct QRat(int r, Num = long)
         assert(format("%s", (1 + 2*surd!(-1))/2) == "(1+2*√(-1))/2");
         assert(format("%s", (1 + 2*surd!(11))/2) == "(1+2*√11)/2");
         assert(format("%s", (1 - 2*surd!(11))/2) == "(1-2*√11)/2");
+        assert(format("%s", (1 - surd!(11))/2) == "(1-√11)/2");
     }
 }
 
