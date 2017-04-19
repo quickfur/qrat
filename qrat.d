@@ -461,7 +461,7 @@ struct QRat(int r, Num = long)
      * Convert this quadratic rational to (imprecise) floating-point
      * representation.
      *
-     * This is only possible if r is non-negative.
+     * If r is negative, returns NaN.
      *
      * Note that for custom base number types that may overflow upon
      * conversion to double, this operation may not return the correct
@@ -470,9 +470,6 @@ struct QRat(int r, Num = long)
     auto opCast(T : double)()
         if (is(typeof(cast(double) Num.init)))
     {
-        static assert(r >= 0, "Cannot convert square root of negative number "~
-                              "to double");
-
         import std.math : sqrt;
         return (cast(double) a + b*sqrt(cast(double)r)) / c;
     }
@@ -480,9 +477,11 @@ struct QRat(int r, Num = long)
     static if (r==5 && is(Num == long))
     unittest
     {
-        import std.math : abs;
+        import std.math : abs, isNaN;
         auto q = cast(double) (1 + surd!5)/2;
         assert(abs(q - 1.61803398874989) < 1e-13);
+
+        assert(isNaN(cast(double) (1 + surd!(-1))));
     }
 
     /**
