@@ -518,6 +518,35 @@ struct QRat(int r, Num = long)
     }
 
     /**
+     * Assignment operators.
+     */
+    ref QRat opOpAssign(string op, T)(T arg)
+        if (op == "+" || op == "-" || op == "*" || op == "/")
+    {
+        auto result = mixin("this "~op~" arg");
+        this = result;
+        return this;
+    }
+
+    static if (r==5 && is(Num == long))
+    ///
+    unittest
+    {
+        auto q = surd!3 / 3;
+        q += 2;
+        assert(q == 2 + (surd!3 / 3));
+
+        q *= surd!3;
+        assert(q == 2*surd!3 + 1);
+
+        q -= 1;
+        assert(q == 2*surd!3);
+
+        q /= surd!3;
+        assert(q == 2);
+    }
+
+    /**
      * Equality comparisons.
      *
      * Equality with integers is supported. Equality with floating-point is not
