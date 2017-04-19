@@ -2,7 +2,7 @@
  * Simple quadratic rational implementation.
  *
  * Implements exact arithmetic with numbers of the form (a + b*√r)/c where r is
- * a fixed integer.
+ * a fixed square-free integer.
  *
  * Author: H. S. Teoh.
  * Copyright: H. S. Teoh, 2017-.
@@ -32,17 +32,19 @@ unittest
     auto q = (1 + surd!5) / 2;
     assert(phi == q);
 
-    // You can mix and match QRat expressions with integral expressions.
+    // Inequalities are supported:
     assert(phi*10000 > 16180);
     assert(phi*10000 < 16181);
+    assert((10 + surd!5)/20 < (surd!5 - 1)/2);
+    assert((surd!5 - 1)/2 < (10 + surd!5)/19);
 
     // You can even create Gaussian integers.
     auto g1 = 1 + surd!(-1);
     auto g2 = 1 - surd!(-1);
     assert(g1 * g2 == 2);
 
-    // Of course, QRat goes further and allows you to manipulate "rational"
-    // complex numbers (i.e., complex numbers with rational coefficients).
+    // Of course, QRat goes further and allows you to manipulate Gaussian
+    // rationals as well (i.e., complex numbers with rational coefficients).
     auto g3 = g1 / (2 - surd!(-1));
     assert(g3 == (1 + 3*surd!(-1)) / 5);
 
@@ -54,7 +56,7 @@ unittest
     // put other negative numbers under the surd:
     auto h1 = 1 + surd!(-2);
     auto h2 = 1 - surd!(-2);
-    assert(h1*h2 == 3);
+    assert(h1 * h2 == 3);
 
     // You can print out QRat quantities in a nice formatting
     import std.format : format;
@@ -158,6 +160,7 @@ unittest
  *      square-free-ness is NP-complete, this implementation does not attempt
  *      to enforce it.  However, you may get strange or wrong results if r is
  *      not square-free.
+ *  Num = The base integer type. This should be signed. BigInt is supported.
  */
 struct QRat(int r, Num = long)
     if (r != 0 && r != 1 && isArithmeticType!Num)
@@ -207,6 +210,10 @@ struct QRat(int r, Num = long)
 
     /**
      * Binary operators.
+     *
+     * Field operations between QRats and integral types are supported, and are
+     * exact.  Integral types should be compatible with the base number type
+     * Num.
      */
     QRat opBinary(string op)(QRat q)
         if (op == "+" || op == "-")
