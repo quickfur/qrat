@@ -31,6 +31,9 @@ unittest
     auto q = (1 + surd!5) / 2;
     assert(phi == q);
 
+    // Computing the conjugate quadratic rational:
+    assert(((1 + surd!5) / 2).conj == (1 - surd!5) / 2);
+
     // Inequalities are supported:
     assert(phi*10000 > 16180);
     assert(phi*10000 < 16181);
@@ -56,6 +59,10 @@ unittest
     auto h1 = 1 + surd!(-2);
     auto h2 = 1 - surd!(-2);
     assert(h1 * h2 == 3);
+
+    // Including Eisenstein integers.
+    auto w = (surd!(-3) - 1)/2;
+    assert(w*w + w + 1 == 0);
 
     // You can print out QRat quantities in a nice formatting
     import std.format : format;
