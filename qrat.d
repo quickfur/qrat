@@ -226,11 +226,34 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         auto w = (surd!(-3) - 1)/2;
         assert(-w == (1 - surd!(-3)) / 2);
         assert(+w == w);
+    }
+
+    /// ditto
+    ref QRat opUnary(string op)()
+        if (op == "++" || op == "--")
+    {
+        mixin("a " ~ op[0] ~ "= c;");
+        normalize();
+        return this;
+    }
+
+    static if (r==5 && is(Num == long))
+    ///
+    unittest
+    {
+        auto x = surd!7 / 2;
+        x++;
+        assert(x == 1 + (surd!7 / 2));
+
+        auto y = (1 + surd!3) / 2;
+        --y;
+        assert(y == (surd!3 - 1) / 2);
     }
 
     /**
