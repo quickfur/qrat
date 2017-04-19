@@ -10,7 +10,7 @@
  */
 module qrat;
 
-///
+/// Basic usage:
 unittest
 {
     // The basic type for storing quadratic rationals is QRat.
@@ -31,14 +31,14 @@ unittest
     auto q = (1 + surd!5) / 2;
     assert(phi == q);
 
-    // Computing the conjugate quadratic rational:
-    assert(((1 + surd!5) / 2).conj == (1 - surd!5) / 2);
-
     // Inequalities are supported:
     assert(phi*10000 > 16180);
     assert(phi*10000 < 16181);
     assert((10 + surd!5)/20 < (surd!5 - 1)/2);
     assert((surd!5 - 1)/2 < (10 + surd!5)/19);
+
+    // Computing the conjugate quadratic rational:
+    assert(((1 + surd!5) / 2).conj == (1 - surd!5) / 2);
 
     // You can even create Gaussian integers.
     auto g1 = 1 + surd!(-1);
@@ -63,7 +63,11 @@ unittest
     // Including Eisenstein integers.
     auto w = (surd!(-3) - 1)/2;
     assert(w*w + w + 1 == 0);
+}
 
+/// Formatting and conversion to floating-point:
+unittest
+{
     // You can print out QRat quantities in a nice formatting
     import std.format : format;
     auto s = format("%s", (7 - 2*surd!11)/3);
@@ -73,7 +77,11 @@ unittest
     // interfacing with other code that doesn't understand QRat quantities.
     double fval = cast(double)((1 + surd!5)/2);
     assert(format("%.5f", fval) == "1.61803");
+}
 
+/// BigInt support:
+unittest
+{
     // QRat supports BigInt coefficients for when you need insurance against
     // integer overflow:
     import std.bigint : BigInt;
