@@ -828,4 +828,32 @@ unittest
     assert(phi.conj == (1 - surd!5)/2);
 }
 
+/**
+ * Computes the absolute value of the given quadratic rational.
+ *
+ * A compile error is raised if the radical is complex.
+ *
+ * Params:
+ *  Q = An instantiation of QRat.
+ *  q = A quadratic rational.
+ *
+ * Returns: The positive form of the quadratic rational.
+ */
+Q abs(Q : QRat!(r,Num), int r, Num)(Q q)
+{
+    static assert(is(typeof(q.sgn())), "Cannot compute absolute value of "~
+                                       "complex radical");
+    return (q.sgn() < 0) ? -q : q;
+}
+
+///
+unittest
+{
+    auto q1 = (1 + surd!5)/2;
+    assert(q1.abs == q1);
+
+    auto q2 = (1 - surd!5)/2;
+    assert(q2.abs == (surd!5 - 1)/2);
+}
+
 // vim:set ai sw=4 ts=4 et:
