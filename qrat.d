@@ -2,7 +2,7 @@
  * Simple quadratic rational implementation.
  *
  * Implements exact arithmetic with numbers of the form (a + b*√r)/c where r is
- * fixed.
+ * a fixed integer.
  *
  * Author: H. S. Teoh.
  * Copyright: H. S. Teoh, 2017-.
@@ -565,7 +565,7 @@ struct QRat(int r, Num = long)
     /**
      * Converts this quadratic rational to a string representation.
      */
-    void toString(scope void delegate(const(char)[]) sink)
+    void toString()(scope void delegate(const(char)[]) sink)
     {
         import std.format : formattedWrite;
 
