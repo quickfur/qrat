@@ -11,7 +11,7 @@
 module qrat;
 
 /// Basic usage:
-unittest
+pure nothrow @nogc @safe unittest
 {
     // The basic type for storing quadratic rationals is QRat.
     auto phi = QRat!5(1, 1, 2); // The golden ratio, (1 + √5)/2 = 1.61803...
@@ -80,7 +80,7 @@ unittest
 }
 
 /// BigInt support:
-unittest
+pure unittest
 {
     // QRat supports BigInt coefficients for when you need insurance against
     // integer overflow:
