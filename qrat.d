@@ -21,7 +21,10 @@ unittest
     assert(phi*phi == phi+1);   // Golden ratio identity
     assert(phi*phi - phi - 1 == 0);
     assert(phi * phiInverse == 1);
+
+    // Exact division is supported too.
     assert(1/phi == phiInverse);
+    assert((phi + 1)/phi == phi);
 
     // The surd() template function makes it convenient to create instances of
     // QRat in a more readable fashion.
@@ -56,6 +59,11 @@ unittest
     import std.format : format;
     auto s = format("%s", (7 - 2*surd!11)/3);
     assert(s == "(7-2*√11)/3");
+
+    // You can convert non-complex quadratic rationals into floating-point, for
+    // interfacing with other code that doesn't understand QRat quantities.
+    double fval = cast(double)((1 + surd!5)/2);
+    assert(format("%.5f", fval) == "1.61803");
 }
 
 /**
