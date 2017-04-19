@@ -3,6 +3,10 @@
  *
  * Implements exact arithmetic with numbers of the form (a + b*√r)/c where r is
  * fixed.
+ *
+ * Author: H. S. Teoh.
+ * Copyright: H. S. Teoh, 2017-.
+ * License: Boost License 1.0.
  */
 
 module qrat;
