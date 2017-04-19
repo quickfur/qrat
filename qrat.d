@@ -141,9 +141,10 @@ unittest
  * A quadratic rational of the form (a + b*√r)/c.
  *
  * Params:
- *  r = A square-free number.  Note that since checking for square-free-ness is
- *      NP-complete, this implementation does not attempt to enforce it.
- *      However, you may get strange or wrong results if r is not square-free.
+ *  r = A non-zero square-free number.  Note that since checking for
+ *      square-free-ness is NP-complete, this implementation does not attempt
+ *      to enforce it.  However, you may get strange or wrong results if r is
+ *      not square-free.
  */
 struct QRat(int r, Num = long)
     if (r != 0 && r != 1 && isArithmeticType!Num)
