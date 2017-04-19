@@ -80,11 +80,6 @@ enum isArithmeticType(T) = is(typeof(T.init + T.init) : T) &&
                            is(typeof(T.init * int.init) : T) &&
                            is(typeof(T.init == 0) : bool);
 
-private template from(string mod)
-{
-    mixin("import from = " ~ mod ~ ";");
-}
-
 // This is an ultra-ugly hack to work around the Phobos bogonity that
 // std.numeric.gcd has no sig constraints, yet does not compile with BigInt, so
 // once we import it, we cannot even declare our own BigInt version of gcd
