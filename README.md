@@ -17,7 +17,11 @@ floating-point representation is inexact and vulnerable to roundoff errors.
 This module implements the QRat type that can represent the exact values of
 these numbers, and provides exact arithmetic on them. It allows exact
 computations with numbers of this form.  BigInt coefficients are also supported
-where integer overflow is a concern.
+where integer overflow is a concern. Exact arithmetic is also supported by
+symbolic algebra software like Mathcad, but general symbolic algebra has poorer
+performance due to the complexity of handling arbitrary algebraic expressions,
+whereas a native implementation of quadratic rationals as provided by this
+module can perform better.
 
 Among the applications of quadratic rationals are the computation of
 coordinates of certain geometric objects, such as equilateral triangles
