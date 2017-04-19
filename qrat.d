@@ -15,7 +15,8 @@ unittest
 {
     // The basic type for storing quadratic rationals is QRat.
     auto phi = QRat!5(1, 1, 2); // The golden ratio, (1 + √5)/2 = 1.61803...
-    auto phiInverse = QRat!5(-1, 1, 2); // The reciprocal of the golden ratio
+    auto phiInverse = QRat!5(-1, 1, 2); // The reciprocal of the golden ratio,
+                                        // (-1 + √5)/2 = 0.61803...
 
     // Basic arithmetic is supported, and is exact.
     assert(phi*phi == phi+1);   // Golden ratio identity
@@ -64,6 +65,18 @@ unittest
     // interfacing with other code that doesn't understand QRat quantities.
     double fval = cast(double)((1 + surd!5)/2);
     assert(format("%.5f", fval) == "1.61803");
+
+    // QRat supports BigInt coefficients for when you need insurance against
+    // integer overflow:
+    import std.bigint : BigInt;
+    auto qBig1 = (BigInt(1_000_000) + BigInt(1_000_011)*surd!(127031, BigInt)) /
+        BigInt(127431);
+    auto qBig2 = (BigInt(1_000_000) - BigInt(1_000_099)*surd!(127031, BigInt)) /
+        BigInt(139201);
+    auto bigResult = qBig1 / qBig2;
+    assert(bigResult == (BigInt("-2526418080557432169937") -
+                         BigInt("39773901730000000")*surd!(127031, BigInt)) /
+                         BigInt("2312966464393285975023"));
 }
 
 /**
@@ -640,7 +653,7 @@ unittest
 /**
  * Convenience function for creating quadratic rationals.
  */
-auto surd(int r, Num = long)() { return QRat!(r,Num)(0, 1, 1); }
+auto surd(int r, Num = long)() { return QRat!(r,Num)(Num(0), Num(1), Num(1)); }
 
 ///
 unittest
