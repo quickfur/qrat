@@ -152,6 +152,7 @@ auto gcd(T...)(T args)
     return gcd(g, args[2 .. $]);
 }
 
+///
 unittest
 {
     assert(gcd(100, 75, 25) == 25);
@@ -173,6 +174,19 @@ struct QRat(int r, Num = long)
 {
     Num a, b, c=1;
 
+    /**
+     * Constructor.
+     *
+     * Creates a QRat instance representing the quadratic rational (a+b*√r)/c.
+     *
+     * See also the `surd` template, that allows a friendlier syntax for
+     * creating instances of QRat.
+     *
+     * Params:
+     *  a = The integral part of the numerator.
+     *  b = The coefficient of √r.
+     *  c = The denominator.
+     */
     this(Num _a, Num _b, Num _c=1)
     in { assert(c != 0, "Zero denominator"); }
     body
@@ -181,6 +195,15 @@ struct QRat(int r, Num = long)
         b = _b;
         c = _c;
         normalize();
+    }
+
+    static if (r==5 && is(Num == long))
+    ///
+    unittest
+    {
+        import std.format : format;
+        auto q = QRat!5(3, 1, 2); // (3 + 1*sqrt(5)) / 2
+        assert(format("%.5f", cast(double) q) == "2.61803");
     }
 
     // Reduce fraction to lowest terms.
@@ -208,6 +231,7 @@ struct QRat(int r, Num = long)
     QRat conj()() { return QRat(a, -b, c); }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         auto phi = (1 + surd!5)/2;
@@ -226,7 +250,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
-    ///
+    /// Unary + and -:
     unittest
     {
         auto w = (surd!(-3) - 1)/2;
@@ -244,7 +268,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
-    ///
+    /// Increment and decrement:
     unittest
     {
         auto x = surd!7 / 2;
@@ -287,6 +311,19 @@ struct QRat(int r, Num = long)
         assert(q1 + q2 == QRat!5(5, 5, 6));
     }
 
+    static if (r==5 && is(Num == long))
+    /// Addition and subtraction:
+    unittest
+    {
+        auto q1 = (1 + surd!5) / 2;
+        auto q2 = (1 + surd!5) / 3;
+
+        assert(q1 + q1 == 1 + surd!5);
+        assert(q1 + q2 == (5 + 5*surd!5) / 6);
+        assert(q1 - q1 == 0);
+        assert(q1 - q2 == (1 + surd!5) / 6);
+    }
+
     /// ditto
     QRat opBinary(string op, N)(N n)
         if ((op == "+" || op == "-") &&
@@ -296,6 +333,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    /// Addition and subtraction of integers:
     unittest
     {
         auto q = QRat!5(1, 1, 2) + 1;
@@ -312,6 +350,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         auto q = 1 + surd!5;
@@ -340,6 +379,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    /// Scalar multiplication:
     unittest
     {
         auto q = 1 + surd!5;
@@ -358,6 +398,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         auto q = 1 + 2*surd!5;
@@ -373,6 +414,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    /// Division by integer:
     unittest
     {
         auto q = (1 + surd!5)/2;
@@ -388,6 +430,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    /// Multiplication between QRats:
     unittest
     {
         auto phi = (1 + surd!5)/2;
@@ -395,9 +438,7 @@ struct QRat(int r, Num = long)
         assert(phi * inv == QRat!5(1, 0, 1));
         assert(phi * phi == phi + 1);
 
-        // We actually don't need to worry if r<0, since the multiplication
-        // actually works in that case too! So here's a Gaussian integer
-        // example.
+        // Gaussian integer example:
         assert(surd!(-1) * surd!(-1) == QRat!(-1)(-1, 0, 1));
         assert((1 + surd!(-1)) * (1 - surd!(-1)) == QRat!(-1)(2, 0, 1));
     }
@@ -443,6 +484,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    /// Division of QRats.
     unittest
     {
         // Golden ratio identity
@@ -469,6 +511,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    /// Reciprocation:
     unittest
     {
         assert(1 / ((1 + surd!5)/2) == (surd!5 - 1)/2);
@@ -497,6 +540,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         auto q1 = 1 + surd!(-1);
@@ -505,10 +549,6 @@ struct QRat(int r, Num = long)
         assert(q1 * q2 == 2);
         assert(q1 - 2*surd!(-1) == q2);
     }
-
-    /* The following operations only make sense for non-imaginary quadratic
-     * rationals.
-     */
 
     /**
      * Convert this quadratic rational to (imprecise) floating-point
@@ -528,12 +568,14 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         import std.math : abs, isNaN;
         auto q = cast(double) (1 + surd!5)/2;
         assert(abs(q - 1.61803398874989) < 1e-13);
 
+        // Complex numbers produce NaN.
         assert(isNaN(cast(double) (1 + surd!(-1))));
     }
 
@@ -584,6 +626,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         auto q1 = 0*surd!5;
@@ -625,6 +668,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         assert(6 + surd!5 < 4 + 2*surd!5);
@@ -673,6 +717,7 @@ struct QRat(int r, Num = long)
     }
 
     static if (r==5 && is(Num == long))
+    ///
     unittest
     {
         import std.format : format;
