@@ -644,9 +644,9 @@ auto surd(int r, Num = long)() { return QRat!(r,Num)(0, 1, 1); }
 ///
 unittest
 {
-    auto phi = surd!5;
+    auto phi = (1 + surd!5)/2;
     assert(is(typeof(phi) == QRat!(5,long)));
-    assert(phi == QRat!(5,long)(0, 1, 1));
+    assert(phi == QRat!(5,long)(1, 1, 2));
 }
 
 // vim:set ai sw=4 ts=4 et:
