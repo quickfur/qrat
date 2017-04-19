@@ -24,6 +24,7 @@ unittest
     assert(phi * phiInverse == 1);
     assert(1/phi == phiInverse);
     assert((phi + 1)/phi == phi);
+    assert(-phi == -(1 + surd!5)/2);
 
     // The surd() template function makes it convenient to create instances of
     // QRat in a more readable fashion.
@@ -204,6 +205,25 @@ struct QRat(int r, Num = long)
     {
         auto phi = (1 + surd!5)/2;
         assert(phi.conj == (1 - surd!5)/2);
+    }
+
+    /**
+     * Unary operators.
+     */
+    QRat opUnary(string op)()
+        if (op == "+" || op == "-")
+    {
+        // Note: any negative denominator that results will get normalized by
+        // the ctor.
+        return QRat(a, b, mixin(op ~ "c"));
+    }
+
+    static if (r==5 && is(Num == long))
+    unittest
+    {
+        auto w = (surd!(-3) - 1)/2;
+        assert(-w == (1 - surd!(-3)) / 2);
+        assert(+w == w);
     }
 
     /**
