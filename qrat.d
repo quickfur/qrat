@@ -18,12 +18,10 @@ unittest
     auto phiInverse = QRat!5(-1, 1, 2); // The reciprocal of the golden ratio,
                                         // (-1 + √5)/2 = 0.61803...
 
-    // Basic arithmetic is supported, and is exact.
+    // Basic arithmetic (field operations) is supported, and is exact.
     assert(phi*phi == phi+1);   // Golden ratio identity
     assert(phi*phi - phi - 1 == 0);
     assert(phi * phiInverse == 1);
-
-    // Exact division is supported too.
     assert(1/phi == phiInverse);
     assert((phi + 1)/phi == phi);
 
@@ -428,6 +426,11 @@ struct QRat(int r, Num = long)
 
     /**
      * Equality comparisons.
+     *
+     * Equality with integers is supported. Equality with floating-point is not
+     * supported, however, because floating-point is inexact. For comparisons
+     * with floating-point, use `cast(double)` and compare the result with the
+     * usual approximate floating-point comparisons.
      */
     bool opEquals()(QRat q)
     {
@@ -487,7 +490,8 @@ struct QRat(int r, Num = long)
     /**
      * Compute the sign of this quadratic rational.
      *
-     * Obviously, this only works if r is non-negative.
+     * Obviously, this only works if r is non-negative. A compile error is
+     * issued if this is attempted with negative r.
      *
      * Returns: -1 if this quadratic rational is negative; 0 if it is zero, or
      * 1 if it is positive.
@@ -561,7 +565,8 @@ struct QRat(int r, Num = long)
     /**
      * Compare two quadratic rationals according to numerical order.
      *
-     * Obviously, this only works if r is non-negative.
+     * Obviously, this only works if r is non-negative. A compile error is
+     * issued if this is attempted with negative r.
      */
     int opCmp(T)(T q)
         if (is(T == QRat) || is(T : Num))
@@ -583,7 +588,7 @@ struct QRat(int r, Num = long)
     }
 
     /**
-     * Converts this quadratic rational to a string representation.
+     * Convert this quadratic rational to a string representation.
      */
     void toString()(scope void delegate(const(char)[]) sink)
     {
@@ -658,6 +663,11 @@ unittest
 
 /**
  * Convenience function for creating quadratic rationals.
+ *
+ * Params:
+ *  r = The number under the radical.
+ *  Num = The base number type for the coefficients of the resulting QRat.
+ * Returns: The QRat representing √r.
  */
 auto surd(int r, Num = long)() { return QRat!(r,Num)(Num(0), Num(1), Num(1)); }
 
