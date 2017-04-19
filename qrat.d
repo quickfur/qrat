@@ -195,7 +195,7 @@ struct QRat(int r, Num = long)
      *  b = The coefficient of √r.
      *  c = The denominator.
      */
-    this(Num _a, Num _b, Num _c=1)
+    this(Num _a, Num _b=0, Num _c=1)
     in { assert(c != 0, "Zero denominator"); }
     body
     {
