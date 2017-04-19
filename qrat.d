@@ -234,19 +234,6 @@ struct QRat(int r, Num = long)
     }
 
     /**
-     * Returns: The conjugate (a - b*√r)/c of this quadratic rational.
-     */
-    QRat conj()() { return QRat(a, -b, c); }
-
-    static if (r==5 && is(Num == long))
-    ///
-    unittest
-    {
-        auto phi = (1 + surd!5)/2;
-        assert(phi.conj == (1 - surd!5)/2);
-    }
-
-    /**
      * Unary operators.
      */
     QRat opUnary(string op)()
@@ -818,6 +805,27 @@ unittest
     auto phi = (1 + surd!5)/2;
     assert(is(typeof(phi) == QRat!(5,long)));
     assert(phi == QRat!(5,long)(1, 1, 2));
+}
+
+/**
+ * Computes the conjugate of a quadratic rational.
+ *
+ * Params:
+ *  Q = An instantiation of QRat.
+ *  q = A quadratic rational.
+ *
+ * Returns: The conjugate (a - b*√r)/c of the given quadratic rational.
+ */
+Q conj(Q : QRat!(r,Num), int r, Num)(Q q)
+{
+    return Q(q.a, -q.b, q.c);
+}
+
+///
+unittest
+{
+    auto phi = (1 + surd!5)/2;
+    assert(phi.conj == (1 - surd!5)/2);
 }
 
 // vim:set ai sw=4 ts=4 et:
