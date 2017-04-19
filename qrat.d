@@ -785,6 +785,15 @@ unittest
     assert(phi.conj == QRat!5(1, -1, 2));
 }
 
+unittest
+{
+    // Test assignment operator
+    QRat!5 q;
+    q = 1 + surd!5;
+    q = surd!5 / 5;
+    assert(q == 1 / surd!5);
+}
+
 /**
  * Convenience function for creating quadratic rationals.
  *
