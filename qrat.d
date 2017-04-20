@@ -225,7 +225,7 @@ struct QRat(int r, Num = long)
         }
 
         import std.math : abs;
-        auto g = gcd(abs(a), abs(b), c);
+        auto g = gcd(abs(a), c, abs(b));
         if (g == 1) return;
 
         a /= g;
