@@ -935,7 +935,7 @@ body
 }
 
 ///
-unittest
+pure nothrow @nogc @safe unittest
 {
     assert(pow(0, 0) == 1);
     assert(pow(2, 20) == 1048576);
