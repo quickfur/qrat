@@ -195,13 +195,14 @@ struct QRat(int r, Num = long)
      *  b = The coefficient of √r.
      *  c = The denominator.
      */
-    this(Num _a, Num _b=0, Num _c=1)
+    this(N)(N _a, N _b=0, N _c=1)
+        if (is(typeof(Num(N.init))))
     in { assert(c != 0, "Zero denominator"); }
     body
     {
-        a = _a;
-        b = _b;
-        c = _c;
+        a = Num(_a);
+        b = Num(_b);
+        c = Num(_c);
         normalize();
     }
 
@@ -902,7 +903,7 @@ T pow(T,N)(T t, N n)
         is(typeof((T t) => t *= T.init)) &&
         is(typeof((N n) => n >>= 1)) &&
         is(typeof(N.init & 1)))
-in { assert(t != 0 || n >= 0, "Cannot take negative exponents of zero"); }
+in { assert(t != T(0) || n >= 0, "Cannot take negative exponents of zero"); }
 body
 {
     T result = T(1);
@@ -942,6 +943,13 @@ pure nothrow @nogc @safe unittest
 
     assert(pow(surd!17, 3) == 17*surd!17);
     assert(pow(surd!3, -3) == 1 / (3 * surd!3));
+}
+
+unittest
+{
+    // Ensure QRat!(n, BigInt) is usable with pow().
+    import std.bigint : BigInt;
+    assert(pow(surd!(5, BigInt), 3) == BigInt(5)*surd!(5, BigInt));
 }
 
 // vim:set ai sw=4 ts=4 et:
