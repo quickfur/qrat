@@ -180,7 +180,7 @@ unittest
 struct QRat(int r, Num = long)
     if (r != 0 && r != 1 && isArithmeticType!Num)
 {
-    Num a, b, c=1;
+    Num a, b, c = Num(1);
 
     /**
      * Constructor.
@@ -512,11 +512,36 @@ struct QRat(int r, Num = long)
         assert(1 / ((1 + surd!5)/2) == (surd!5 - 1)/2);
     }
 
+    /// ditto
+    QRat opBinary(string op, N)(N n)
+        if (op == "^^" && is(typeof((N n) => n >>= 1)) &&
+            is(typeof(N.init & 1)))
+    {
+        return pow(this, n);
+    }
+
+    static if (r==5 && is(Num == long))
+    /**
+     * Exponentiation by non-negative integers is supported.
+     *
+     * The cost of exponentiation is O(log(n)).
+     */
+    unittest
+    {
+        auto phi = (1 + surd!5) / 2;
+        assert(phi^^2 == phi + 1);
+        assert(phi^^6 == 8*phi + 5);
+        assert(phi^^12 == 144*phi + 89);
+
+        assert(phi^^(-2) == 2 - phi);
+        assert(phi^^(-10) == 89 - 55*phi);
+    }
+
     /**
      * Assignment operators.
      */
     ref QRat opOpAssign(string op, T)(T arg)
-        if (op == "+" || op == "-" || op == "*" || op == "/")
+        if (op == "+" || op == "-" || op == "*" || op == "/" || op == "^^")
     {
         auto result = mixin("this "~op~" arg");
         this = result;
@@ -539,6 +564,9 @@ struct QRat(int r, Num = long)
 
         q /= surd!3;
         assert(q == 2);
+
+        q ^^= 5;
+        assert(q == 32);
     }
 
     /**
@@ -857,6 +885,63 @@ unittest
 
     auto q2 = (1 - surd!5)/2;
     assert(q2.abs == (surd!5 - 1)/2);
+}
+
+/**
+ * Exponentiate a numeric type by an integral exponent.
+ *
+ * This function computes t raised to the power of n in O(log n) time. Negative
+ * exponents are accepted as long as the base type supports division and `t` is
+ * non-zero.
+ *
+ * Preconditions: If n < 0, then T must support division, and t must not be
+ * equal to 0.
+ */
+T pow(T,N)(T t, N n)
+    if (is(typeof(T(1)) : T) &&
+        is(typeof((T t) => t *= T.init)) &&
+        is(typeof((N n) => n >>= 1)) &&
+        is(typeof(N.init & 1)))
+in { assert(t != 0 || n >= 0, "Cannot take negative exponents of zero"); }
+body
+{
+    T result = T(1);
+    T mult = void;
+    N m = void;
+
+    if (n >= 0)
+    {
+        mult = t;
+        m = n;
+    }
+    else
+    {
+        static if (is(typeof(T.init / T.init)))
+        {
+            mult = T(1) / t;
+            m = -n;
+        }
+        else
+            assert(0, "Don't know how to compute negative exponents for " ~
+                      T.stringof);
+    }
+    while (m)
+    {
+        if (m & 1) result *= mult;
+        m >>= 1;
+        mult *= mult;
+    }
+    return result;
+}
+
+///
+unittest
+{
+    assert(pow(0, 0) == 1);
+    assert(pow(2, 20) == 1048576);
+
+    assert(pow(surd!17, 3) == 17*surd!17);
+    assert(pow(surd!3, -3) == 1 / (3 * surd!3));
 }
 
 // vim:set ai sw=4 ts=4 et:
