@@ -405,6 +405,8 @@ struct QRat(int r, Num = long)
     QRat opBinary(string op, N)(N n)
         if (op == "/" &&
             is(typeof(Num.init * N.init) : Num))
+    in { assert(n != 0, "Division by zero"); }
+    body
     {
         return QRat(a, b, c*n);
     }
@@ -443,6 +445,8 @@ struct QRat(int r, Num = long)
     /// ditto
     QRat opBinary(string op)(QRat q)
         if (op == "/")
+    in { assert(q.a != 0 || q.b != 0, "Division by zero"); }
+    body
     {
         // Derivation:
         // ((a + b√r)/c) / ((a' + b'√r)/c')
@@ -495,6 +499,17 @@ struct QRat(int r, Num = long)
         auto q1 = (2 + 2*surd!3) / 3;
         auto q2 = (3 - 3*surd!3) / 2;
         assert(q1 / q2 == (-8 - 4*surd!3)/9);
+    }
+
+    /// Division by zero causes a runtime assertion.
+    unittest
+    {
+        import core.exception : AssertError;
+        import std.exception : assertThrown;
+
+        auto q = 0*surd!5;
+        assertThrown!AssertError(1/q);
+        assertThrown!AssertError(q/0);
     }
 
     /// ditto
