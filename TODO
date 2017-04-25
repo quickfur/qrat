@@ -1,2 +1,4 @@
 - Use middle dot instead of '*' in toString?
 - Use a vinculum over the radical sign in toString?
+- To reduce template bloat, operators that don't depend on the value of r
+  should be factored out into a separate struct.
