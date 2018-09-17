@@ -119,7 +119,8 @@ in { assert(a >= 0 && b >= 0); }
 body
 {
     static import std.numeric;
-    static if (is(typeof(std.numeric.gcd(T.init, T.init))))
+    // This is a hack to work around BigInt causing std.numeric.gcd to assert.
+    static if (is(isIntegral!T))
     {
         return std.numeric.gcd(a, b);
     }
