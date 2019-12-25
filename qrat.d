@@ -115,8 +115,7 @@ enum isArithmeticType(T) = is(typeof(T.init + T.init) : T) &&
 // without causing an overload conflict.
 T gcd(T)(T a, T b)
     if (isArithmeticType!T)
-in { assert(a >= 0 && b >= 0); }
-body
+    in (a >= 0 && b >= 0)
 {
     static import std.numeric;
     // This is a hack to work around BigInt causing std.numeric.gcd to assert.
@@ -198,8 +197,7 @@ struct QRat(int r, Num = long)
      */
     this(N)(N _a, N _b=0, N _c=1)
         if (is(typeof(Num(N.init))))
-    in { assert(c != 0, "Zero denominator"); }
-    body
+        in (c != 0, "Zero denominator")
     {
         a = Num(_a);
         b = Num(_b);
@@ -406,8 +404,7 @@ struct QRat(int r, Num = long)
     QRat opBinary(string op, N)(N n)
         if (op == "/" &&
             is(typeof(Num.init * N.init) : Num))
-    in { assert(n != 0, "Division by zero"); }
-    body
+        in (n != 0, "Division by zero")
     {
         return QRat(a, b, c*n);
     }
@@ -446,8 +443,7 @@ struct QRat(int r, Num = long)
     /// ditto
     QRat opBinary(string op)(QRat q)
         if (op == "/")
-    in { assert(q.a != 0 || q.b != 0, "Division by zero"); }
-    body
+        in (q.a != 0 || q.b != 0, "Division by zero")
     {
         // Derivation:
         // ((a + b√r)/c) / ((a' + b'√r)/c')
@@ -919,8 +915,7 @@ T pow(T,N)(T t, N n)
         is(typeof((T t) => t *= T.init)) &&
         is(typeof((N n) => n >>= 1)) &&
         is(typeof(N.init & 1)))
-in { assert(t != T(0) || n >= 0, "Cannot take negative exponents of zero"); }
-body
+    in (t != T(0) || n >= 0, "Cannot take negative exponents of zero")
 {
     T result = T(1);
     T mult = void;
