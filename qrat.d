@@ -128,13 +128,17 @@ T gcd(T)(T a, T b)
         // This is a hack to implement gcd for BigInt. Note that this is VERY
         // INEFFICIENT for BigInt; it's only a stop-gap measure until we get a
         // proper BigInt-optimized gcd algorithm into Phobos.
-        while (b)
+        import std.traits : Unqual;
+
+        Unqual!T ua = a;
+        Unqual!T ub = b;
+        while (ub)
         {
-            auto t = b;
-            b = a % b;
-            a = t;
+            auto t = ub;
+            ub = ua % ub;
+            ua = t;
         }
-        return a;
+        return ua;
     }
 }
 
@@ -165,6 +169,48 @@ unittest
 {
     assert(gcd(100, 75, 25) == 25);
     assert(gcd(5, 7, 14) == 1);
+}
+
+/**
+ * Returns: false if n is not a perfect square. If n is a perfect square, true,
+ * and square root is stored in result.
+ */
+private bool isSquare(Num)(Num n, ref Num result)
+    if (is(Num : long))
+{
+    if (n < 0)
+        return false;
+
+    import std.math : sqrt;
+    result = cast(Num) sqrt(cast(double) n);
+    return result * result == n;
+}
+
+unittest
+{
+    long root;
+    assert( isSquare(0, root) && root == 0);
+    assert( isSquare(1, root) && root == 1);
+    assert(!isSquare(2, root));
+    assert(!isSquare(3, root));
+    assert( isSquare(4, root) && root == 2);
+    assert(!isSquare(5, root));
+    assert(!isSquare(6, root));
+    assert(!isSquare(7, root));
+    assert(!isSquare(8, root));
+    assert( isSquare(9, root) && root == 3);
+    assert(!isSquare(10, root));
+
+    assert(!isSquare(-1, root));
+    assert(!isSquare(-2, root));
+    assert(!isSquare(-3, root));
+    assert(!isSquare(-4, root));
+    assert(!isSquare(-5, root));
+    assert(!isSquare(-6, root));
+    assert(!isSquare(-7, root));
+    assert(!isSquare(-8, root));
+    assert(!isSquare(-9, root));
+    assert(!isSquare(-10, root));
 }
 
 /**
@@ -214,6 +260,19 @@ struct QRat(int r, Num = long)
         assert(format("%.5f", cast(double) q) == "2.61803");
     }
 
+    static if (r==5)
+    this(string s)
+    {
+        if (s == "phi")
+        {
+            a = Num(1);
+            b = Num(1);
+            c = Num(2);
+        }
+        else
+            throw new Exception("Unknown constant '" ~ s ~ "'");
+    }
+
     // Reduce fraction to lowest terms.
     private void normalize()
     {
@@ -236,7 +295,7 @@ struct QRat(int r, Num = long)
     /**
      * Unary operators.
      */
-    QRat opUnary(string op)()
+    QRat opUnary(string op)() const
         if (op == "+" || op == "-")
     {
         // Note: any negative denominator that results will get normalized by
@@ -282,7 +341,7 @@ struct QRat(int r, Num = long)
      * exact.  Integral types should be compatible with the base number type
      * Num.
      */
-    QRat opBinary(string op)(QRat q)
+    QRat opBinary(string op)(in QRat q) const
         if (op == "+" || op == "-")
     {
         if (c == q.c)
@@ -320,7 +379,7 @@ struct QRat(int r, Num = long)
     }
 
     /// ditto
-    QRat opBinary(string op, N)(N n)
+    QRat opBinary(string op, N)(in N n) const
         if ((op == "+" || op == "-") &&
             is(typeof(Num.init * N.init) : Num))
     {
@@ -337,7 +396,7 @@ struct QRat(int r, Num = long)
     }
 
     /// ditto
-    QRat opBinaryRight(string op, N)(N n)
+    QRat opBinaryRight(string op, N)(in N n) const
         if ((op == "+" || op == "-") &&
             is(typeof(Num.init * N.init) : Num))
     {
@@ -357,7 +416,7 @@ struct QRat(int r, Num = long)
 
     // Scalar multiplication
     /// ditto
-    QRat opBinary(string op, N)(N n)
+    QRat opBinary(string op, N)(in N n) const
         if (op == "*" &&
             is(typeof(Num.init * N.init) : Num))
     {
@@ -385,7 +444,7 @@ struct QRat(int r, Num = long)
     }
 
     /// ditto
-    QRat opBinaryRight(string op, N)(N n)
+    QRat opBinaryRight(string op, N)(in N n) const
         if (op == "*" &&
             is(typeof(Num.init * N.init) : Num))
     {
@@ -401,7 +460,7 @@ struct QRat(int r, Num = long)
     }
 
     /// ditto
-    QRat opBinary(string op, N)(N n)
+    QRat opBinary(string op, N)(in N n) const
         if (op == "/" &&
             is(typeof(Num.init * N.init) : Num))
         in (n != 0, "Division by zero")
@@ -419,7 +478,7 @@ struct QRat(int r, Num = long)
 
     // QRat multiplication
     /// ditto
-    QRat opBinary(string op)(QRat q)
+    QRat opBinary(string op)(in QRat q) const
         if (op == "*")
     {
         return QRat(a*q.a + b*q.b*r, a*q.b + b*q.a, c * q.c);
@@ -441,7 +500,7 @@ struct QRat(int r, Num = long)
 
     // QRat division
     /// ditto
-    QRat opBinary(string op)(QRat q)
+    QRat opBinary(string op)(in QRat q) const
         if (op == "/")
         in (q.a != 0 || q.b != 0, "Division by zero")
     {
@@ -451,14 +510,14 @@ struct QRat(int r, Num = long)
         // = (c'/c) * ((a*a' - b*b'*r) + (a'*b - a*b')√r) / (a'^2 - b'^2*r)
         import std.math : abs;
 
-        auto aTmp = a*q.a - b*q.b*r;
-        auto bTmp = q.a*b - a*q.b;
-        auto cTmp = q.a*q.a - q.b*q.b*r;
+        Num aTmp = a*q.a - b*q.b*r;
+        Num bTmp = q.a*b - a*q.b;
+        Num cTmp = q.a*q.a - q.b*q.b*r;
 
         // k1/k2 = ratio of denominators
         auto g0 = gcd(abs(c), abs(q.c));
-        auto k1 = q.c / g0;
-        auto k2 = c / g0;
+        Num k1 = q.c / g0;
+        Num k2 = c / g0;
 
         // Cancel out common factors to reduce chances of overflow.
         auto g1 = gcd(abs(k1), abs(cTmp));
@@ -510,7 +569,7 @@ struct QRat(int r, Num = long)
     }
 
     /// ditto
-    QRat opBinaryRight(string op, N)(N n)
+    QRat opBinaryRight(string op, N)(in N n) const
         if (op == "/" &&
             is(typeof(N.init / Num.init) : Num))
     {
@@ -526,11 +585,19 @@ struct QRat(int r, Num = long)
     }
 
     /// ditto
-    QRat opBinary(string op, N)(N n)
+    QRat opBinary(string op, N)(in N n) const
         if (op == "^^" && is(typeof((N n) => n >>= 1)) &&
             is(typeof(N.init & 1)))
     {
         return pow(this, n);
+    }
+
+    /// ditto
+    QRat opBinary(string op)(in QRat q) const
+        if (op == "^^")
+        in (q.b == 0 && q.c == 1, "Non-integral exponent not supported")
+    {
+        return pow(this, q.a);
     }
 
     static if (r==5 && is(Num == long))
@@ -548,6 +615,17 @@ struct QRat(int r, Num = long)
 
         assert(phi^^(-2) == 2 - phi);
         assert(phi^^(-10) == 89 - 55*phi);
+    }
+
+    /**
+     * Exponentiation by QRat is also supported, but only if the irrational
+     * part is 0 and the denominator is 1.
+     */
+    unittest
+    {
+        auto phi = (1 + surd!5) / 2;
+        auto two = (2 + 0*surd!5) / 1;
+        assert(phi ^^ two == (3 + surd!5) / 2);
     }
 
     /**
@@ -590,14 +668,14 @@ struct QRat(int r, Num = long)
      * with floating-point, use `cast(double)` and compare the result with the
      * usual approximate floating-point comparisons.
      */
-    bool opEquals()(QRat q)
+    bool opEquals()(QRat q) const
     {
         assert(c > 0 && q.c > 0);
         return a == q.a && b == q.b && c == q.c;
     }
 
     /// ditto
-    bool opEquals()(Num n)
+    bool opEquals()(Num n) const
     {
         if (b != 0 || c != 1) return false;
         assert(b == 0 && c == 1);
@@ -625,7 +703,7 @@ struct QRat(int r, Num = long)
      * conversion to double, this operation may not return the correct
      * result.
      */
-    auto opCast(T : double)()
+    auto opCast(T : double)() const
         if (is(typeof(cast(double) Num.init)))
     {
         import std.math : sqrt;
@@ -653,7 +731,7 @@ struct QRat(int r, Num = long)
      * Returns: -1 if this quadratic rational is negative; 0 if it is zero, or
      * 1 if it is positive.
      */
-    int sgn()()
+    int sgn()() const
     {
         static assert(r >= 0, "Cannot compute sign for square root of "~
                               "negative number");
@@ -726,8 +804,8 @@ struct QRat(int r, Num = long)
      * Obviously, this only works if r is non-negative. A compile error is
      * issued if this is attempted with negative r.
      */
-    int opCmp(T)(T q)
-        if (is(T == QRat) || is(T : Num))
+    int opCmp(T)(T q) const
+        if (r > 0 && (is(T == QRat) || is(T : Num)))
     {
         return (this - q).sgn();
     }
@@ -749,7 +827,7 @@ struct QRat(int r, Num = long)
     /**
      * Convert this quadratic rational to a string representation.
      */
-    void toString()(scope void delegate(const(char)[]) sink)
+    void toString()(scope void delegate(const(char)[]) sink) const
     {
         import std.format : formattedWrite;
 
@@ -809,6 +887,102 @@ struct QRat(int r, Num = long)
         assert(format("%s", (1 + 2*surd!(11))/2) == "(1+2*√11)/2");
         assert(format("%s", (1 - 2*surd!(11))/2) == "(1-2*√11)/2");
         assert(format("%s", (1 - surd!(11))/2) == "(1-√11)/2");
+    }
+
+    /**
+     * Returns: The square root of this quadratic rational, if it exists in the
+     *  corresponding extension field.
+     *
+     * Throws: Exception if this quadratic rational is not a perfect square.
+     */
+    @property QRat sqrt()() const
+    {
+        import std.format : format;
+        typeof(*null) noRoot() // Convenience function for aborting
+        {
+            throw new Exception("%s has no square root in Q[√%d]"
+                                .format(this, r));
+        }
+
+        if (a == r && b == 0 && c == 1)
+            return QRat(0, 1, 1);
+
+        static if (is(Num : long) /* BigInt currently has no .sqrt */)
+        {
+            static if (r > 0)
+            {
+                // Early exit optimizations for r > 0.
+                if (a < Num(0) || (a == Num(0) && b != Num(0)))
+                    noRoot();
+            }
+
+            // Degenerate case: irrational part is zero.
+            if (b == 0)
+            {
+                // Either c = √a, d = 0, or c = 0, d = √(a/r).
+                Num denom;
+                if (!c.isSquare(denom) || denom == 0)
+                    noRoot();
+
+                Num root;
+                if (a.isSquare(root))
+                    return QRat(root, 0, denom);
+                if ((a % r) == 0 && (a/r).isSquare(root))
+                    return QRat(0, root, denom);
+                noRoot();
+            }
+
+            // General case: both rational and irrational parts are non-zero.
+            Num m;
+            if (!isSquare(a*a - b*b*r, m))
+                noRoot();
+
+            // Compute coefficient of √r.
+            // Equal to ±sqrt((a ± √(a^2 - b^2*r)) / (2*c*r)).
+            import std.math : abs, sgn;
+            Num dn, dd;
+            auto root = a + m;
+            auto rootdenom = 2*c*r;
+            auto g = gcd(root.abs, rootdenom.abs) * sgn(rootdenom);
+            auto reducedRoot = root / g;
+            auto reducedDenom = rootdenom / g;
+
+            // Generally we need to test both roots in the inner √ to find the
+            // one that's a perfect square.
+            if (!isSquare(reducedRoot, dn) || !isSquare(reducedDenom, dd))
+            {
+                // Positive root didn't work, try negative root.
+                root = a - m;
+                g = gcd(root.abs, rootdenom.abs) * sgn(rootdenom);
+                reducedRoot = root / g;
+                reducedDenom = rootdenom / g;
+
+                if (!isSquare(reducedRoot, dn) || !isSquare(reducedDenom, dd))
+                    noRoot();
+            }
+
+            // Compute scalar coefficient.
+            // Equal to sqrt((b^2*r)/(2*c*(a ± √(a^2 - b^2r)))).
+            // The inner √ should use the same root used to compute d above.
+            Num cn, cd;
+            auto c2num = b*b*r;
+            auto c2denom = 2*c*root;
+            g = gcd(c2num.abs, c2denom.abs) * sgn(c2denom);
+            c2num /= g;
+            c2denom /= g;
+
+            if (!isSquare(c2num, cn) || !isSquare(c2denom, cd))
+                noRoot();
+
+            // Compute result.
+            auto result = QRat(cn*dd, (b < 0) ? -dn*cd : dn*cd, cd*dd);
+            static if (r > 0)
+                return (result.sgn < 0) ? -result : result;
+            else
+                return result;
+        }
+        throw new Exception("Don't know how to compute square root of %s"
+                            .format(this));
     }
 }
 
@@ -900,6 +1074,64 @@ unittest
     assert(q2.abs == (surd!5 - 1)/2);
 }
 
+///
+pure nothrow @nogc @safe unittest
+{
+    assert(pow(surd!17, 3) == 17*surd!17);
+    assert(pow(surd!3, -3) == 1 / (3 * surd!3));
+}
+
+unittest
+{
+    // Ensure QRat!(n, BigInt) is usable with pow().
+    import std.bigint : BigInt;
+    assert(pow(surd!(5, BigInt), 3) == BigInt(5)*surd!(5, BigInt));
+}
+
+unittest
+{
+    auto q = 5 + 0*surd!5;
+    assert(q.sqrt == surd!5);
+}
+
+/**
+ * Square roots of perfect squares.
+ */
+unittest
+{
+    import std.exception : assertThrown;
+    assertThrown((1 + surd!2).sqrt);
+    assertThrown((0 + 2*surd!2).sqrt);
+    assertThrown((0 + 4*surd!2).sqrt);
+
+    assert((3 + 2*surd!2).sqrt == 1 + surd!2);
+    assert((3 - 2*surd!2).sqrt == surd!2 - 1);
+    assert((6 - 4*surd!2).sqrt == 2 - surd!2);
+    assert((6 + 4*surd!2).sqrt == 2 + surd!2);
+    assert((9 + 4*surd!2).sqrt == 1 + 2*surd!2);
+    assert((9 - 4*surd!2).sqrt == 2*surd!2 - 1);
+    assert((19 - 6*surd!2).sqrt == 3*surd!2 - 1);
+
+    assert((4 + 0*surd!2).sqrt == 2);
+    assert((8 + 0*surd!2).sqrt == 2*surd!2);
+    assert((18 + 0*surd!2).sqrt == 3*surd!2);
+
+    assert((6 + 2*surd!5).sqrt == surd!5 + 1);
+    assert((6 - 2*surd!5).sqrt == surd!5 - 1);
+
+    assert(((9 - 4*surd!5) / 4).sqrt == (surd!5 - 2) / 2);
+    assertThrown(((9 - 4*surd!5) / 8).sqrt);
+
+    assert(((7 - 3*surd!5) / 2).sqrt == (3 - surd!5) / 2);
+    assert(((9 + 4*surd!5) / 5).sqrt == (5 + 2*surd!5) / 5);
+
+    // Gaussian integers
+    assert((2*surd!(-1)).sqrt == 1 + surd!(-1));
+    assert((-2*surd!(-1)).sqrt == 1 - surd!(-1));
+    assert((3 - 4*surd!(-1)).sqrt == 2 - surd!(-1));
+    assert((-3 + 4*surd!(-1)).sqrt == 1 + 2*surd!(-1));
+}
+
 /**
  * Exponentiate a numeric type by an integral exponent.
  *
@@ -910,7 +1142,7 @@ unittest
  * Preconditions: If n < 0, then T must support division, and t must not be
  * equal to 0.
  */
-T pow(T,N)(T t, N n)
+T pow(T,N)(in T t, in N n)
     if (is(typeof(T(1)) : T) &&
         is(typeof((T t) => t *= T.init)) &&
         is(typeof((N n) => n >>= 1)) &&
@@ -951,16 +1183,6 @@ pure nothrow @nogc @safe unittest
 {
     assert(pow(0, 0) == 1);
     assert(pow(2, 20) == 1048576);
-
-    assert(pow(surd!17, 3) == 17*surd!17);
-    assert(pow(surd!3, -3) == 1 / (3 * surd!3));
-}
-
-unittest
-{
-    // Ensure QRat!(n, BigInt) is usable with pow().
-    import std.bigint : BigInt;
-    assert(pow(surd!(5, BigInt), 3) == BigInt(5)*surd!(5, BigInt));
 }
 
 // vim:set ai sw=4 ts=4 et:
